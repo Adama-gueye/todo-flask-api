@@ -15,25 +15,23 @@ class Tasks(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
 
+API_KEY = "?apiKey123hhbh.fgghbhg#"
+@app.before_request
+def check_api_key():
+    key = request.headers.get('x-api-key')
+    if not key or key != API_KEY:
+        return jsonify({'error': 'Clé API invalide ou absente'}), 401
+    
 @app.route('/tasks', methods=['GET'])
 def get_tasks():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 1, type=int)
-    pagination = Tasks.query.paginate(page=page, per_page=per_page, error_out=False)
-    tasks = pagination.items
     tasks = Tasks.query.all()
-    return jsonify({"tasks": [{
-            'id': task.id,
-            'title': task.title,
-            'description': task.description,
-            'done': task.done,
-            'priority': task.priority,
-            'created_at': task.created_at
-        } for task in tasks],
-        "total": pagination.total,
-        "pages": pagination.pages,
-        "current_page": pagination.page
-    })
+    return jsonify([{
+        'id': task.id,
+        'title': task.title,
+        'description': task.description,
+        'done': task.done,
+        'created_at': task.created_at
+    } for task in tasks])
 
 @app.route('/tasks/<int:id>', methods=['GET'])
 def get_task_id(id):
